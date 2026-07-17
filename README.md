@@ -1,6 +1,6 @@
-# BulaRent v0.2
+# BulaRent v0.4
 
-BulaRent is a mobile-first, long-term rental marketplace for Fiji. This release implements the trustworthy-listings beta: public browsing, filters, property details, landlord/agent submission, image storage, administrator approval, reports, listing status management and review notifications.
+BulaRent is a mobile-first, long-term rental marketplace for Fiji. This release adds live homepage listings, multi-photo galleries, clear submission confirmation, listing editing, on-site conversations, richer notifications, report investigations and a full administration control centre.
 
 ## Stack
 
@@ -13,7 +13,7 @@ BulaRent is a mobile-first, long-term rental marketplace for Fiji. This release 
 1. Install Node.js 22 or newer, then dependencies with `npm install`.
 2. Copy `.env.example` to `.env.local`.
 3. Add the Supabase project URL and public anon key. Never add the service-role key to this file.
-4. Apply `supabase/migrations/202607170001_bularent_v02.sql` in a clean Supabase project or through the Supabase CLI.
+4. Apply the files in `supabase/migrations` in filename order. Existing v0.2 projects only need `202607170002_admin_messaging_upgrade.sql`.
 5. Run `npm run dev`.
 
 Without environment variables, public pages run in safe preview mode with local demonstration listings. Accounts and writes remain disabled.
@@ -33,4 +33,6 @@ Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the Vercel
 - Confirm anonymous users see only approved listings.
 - Confirm owners cannot approve or verify their own listings.
 - Confirm one owner cannot read or update another owner's private listings.
-- Confirm administrators can approve/reject listings and resolve reports.
+- Confirm administrators can manage listings/users/settings and investigate reports.
+- Confirm multi-photo galleries work on cards and property details.
+- Confirm owners can edit listings and renters can exchange messages with owners.

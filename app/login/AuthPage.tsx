@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { FormEvent, useState } from "react"
 import { Loader2, ShieldCheck } from "lucide-react"
-import { isSupabaseConfigured } from "@/lib/supabase"
+import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/useAuth"
 import type { UserRole } from "@/lib/types"
 
@@ -28,7 +28,13 @@ export default function AuthPage() {
     setBusy(false)
     if (result.error) { setMessage(result.error.message); return }
     if (signup && !result.data.session) { setMessage("Check your email to confirm your account, then sign in."); return }
-    router.push(role === "admin" ? "/admin" : "/dashboard")
+    const signedInUser = result.data.user
+    if (signedInUser) {
+      const { data: signedInProfile } = await supabase.from("profiles").select("role").eq("id", signedInUser.id).single()
+      router.push(signedInProfile?.role === "admin" ? "/admin" : "/dashboard")
+      return
+    }
+    router.push("/dashboard")
   }
 
   return (

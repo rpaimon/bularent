@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { FormEvent, useState } from "react"
-import { ImagePlus, Loader2, ShieldCheck } from "lucide-react"
+import { FormEvent, useEffect, useState } from "react"
+import { CheckCircle2, ImagePlus, Loader2, ShieldCheck } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 
@@ -13,16 +13,27 @@ export default function NewListingForm() {
   const [files, setFiles] = useState<File[]>([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+  const [submissionsAllowed, setSubmissionsAllowed] = useState(true)
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return
+    supabase.from("platform_settings").select("allow_submissions").eq("id", true).maybeSingle().then(({ data }) => {
+      if (data) setSubmissionsAllowed(data.allow_submissions)
+    })
+  }, [])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setMessage("")
+    event.preventDefault(); setMessage(""); setSubmitted(false)
+    const formElement = event.currentTarget
     if (!user) { setMessage("Please sign in as a landlord or agent first."); return }
     if (!profile || !["landlord", "agent", "admin"].includes(profile.role)) { setMessage("Your account must be a landlord or agent to create listings."); return }
+    if (!submissionsAllowed && profile.role !== "admin") { setMessage("New submissions are temporarily paused by BulaRent. Please try again later."); return }
     if (files.length < 1) { setMessage("Add at least one clear property photo."); return }
     const invalid = files.find((file) => !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024)
     if (invalid) { setMessage("Every photo must be an image smaller than 5 MB."); return }
     setBusy(true)
-    const form = new FormData(event.currentTarget)
+    const form = new FormData(formElement)
     const propertyId = crypto.randomUUID()
     const images: string[] = []
     for (const file of files) {
@@ -54,12 +65,13 @@ export default function NewListingForm() {
     })
     setBusy(false)
     if (error) { setMessage(error.message); return }
-    event.currentTarget.reset(); setFiles([]); setMessage("Listing submitted successfully. It is now waiting for BulaRent review.")
+    formElement.reset(); setFiles([]); setSubmitted(true); setMessage("Listing submitted successfully. It is now waiting for administrator review.")
   }
 
   if (loading) return <div className="grid min-h-[60vh] place-items-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
   if (!isSupabaseConfigured) return <div className="mx-auto min-h-[60vh] max-w-2xl px-4 py-20 text-center"><h1 className="text-3xl font-black">Listing submission is prepared</h1><p className="mt-4 text-slate-600">Connect the Supabase project to activate accounts, image uploads and submissions.</p></div>
   if (!user) return <div className="mx-auto min-h-[60vh] max-w-2xl px-4 py-20 text-center"><h1 className="text-3xl font-black">Sign in to list a property</h1><p className="mt-4 text-slate-600">Landlord and agent accounts can submit properties for review.</p><Link href="/login" className="mt-6 inline-block rounded-xl bg-[#f15a24] px-6 py-3 font-bold text-white">Sign in</Link></div>
+  if (!submissionsAllowed && profile?.role !== "admin") return <div className="mx-auto min-h-[60vh] max-w-2xl px-4 py-20 text-center"><h1 className="text-3xl font-black">New submissions are paused</h1><p className="mt-4 text-slate-600">BulaRent is temporarily not accepting new listings. Your existing listings remain available in your dashboard.</p><Link href="/dashboard" className="mt-6 inline-block rounded-xl bg-[#07384d] px-6 py-3 font-bold text-white">Open dashboard</Link></div>
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -75,7 +87,7 @@ export default function NewListingForm() {
           <label className="grid gap-2 text-sm font-semibold">Features, separated by commas<input name="amenities" placeholder="Car park, hot water, fenced yard" className={input} /></label>
           <div className="grid gap-5 sm:grid-cols-2"><label className="grid gap-2 text-sm font-semibold">Contact phone<input required name="contact_phone" type="tel" placeholder="e.g. 986 3733" className={input} /></label><label className="grid gap-2 text-sm font-semibold">WhatsApp number<input name="whatsapp_phone" type="tel" placeholder="Include country code, e.g. 6799863733" className={input} /></label></div>
           <label className="grid gap-2 text-sm font-semibold"><span className="flex items-center gap-2"><ImagePlus className="h-5 w-5" /> Property photos</span><input required type="file" accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 8))} className="rounded-lg border border-dashed border-slate-300 p-5 font-normal" /><span className="text-xs font-normal text-slate-500">1–8 photos, maximum 5 MB each.</span></label>
-          {message && <p role="status" className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">{message}</p>}
+          {message && <div role="status" className={`rounded-xl p-5 ${submitted ? "border border-emerald-200 bg-emerald-50 text-emerald-950" : "bg-amber-50 text-amber-950"}`}>{submitted && <p className="flex items-center gap-2 text-lg font-black"><CheckCircle2 className="h-6 w-6" /> Listing submitted successfully!</p>}<p className={submitted ? "mt-2 text-sm" : "text-sm"}>{message}</p>{submitted && <div className="mt-4 flex flex-wrap gap-3"><Link href="/dashboard" className="rounded-lg bg-[#07384d] px-4 py-2 text-sm font-bold text-white">View my listings</Link><button type="button" onClick={() => { setSubmitted(false); setMessage("") }} className="rounded-lg border border-emerald-300 px-4 py-2 text-sm font-bold">Submit another</button></div>}</div>}
           <button disabled={busy} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#f15a24] font-bold text-white hover:bg-[#d94713] disabled:opacity-60">{busy && <Loader2 className="h-4 w-4 animate-spin" />} Submit for review</button>
         </form>
       </div>

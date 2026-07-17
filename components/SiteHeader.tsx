@@ -27,6 +27,7 @@ export function SiteHeader() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
+              <Link href="/messages" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Messages</Link>
               <Link href={dashboard} className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Dashboard</Link>
               <button onClick={() => void signOut()} className="rounded-xl bg-[#07384d] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#052c3c]">Sign out</button>
             </>
@@ -49,6 +50,7 @@ export function SiteHeader() {
             <Link href="/properties" className="rounded-lg px-3 py-3 font-medium hover:bg-slate-50">Browse rentals</Link>
             <Link href="/submit" className="rounded-lg px-3 py-3 font-medium hover:bg-slate-50">List a property</Link>
             <Link href="/about" className="rounded-lg px-3 py-3 font-medium hover:bg-slate-50">How it works</Link>
+            {user && <Link href="/messages" className="rounded-lg px-3 py-3 font-medium hover:bg-slate-50">Messages</Link>}
             <Link href={user ? dashboard : "/login"} className="mt-2 rounded-lg bg-[#f15a24] px-3 py-3 text-center font-semibold text-white">
               {user ? "Dashboard" : "Sign in"}
             </Link>

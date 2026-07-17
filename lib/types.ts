@@ -9,6 +9,7 @@ export interface Profile {
   role: UserRole
   verified: boolean
   banned: boolean
+  created_at?: string
 }
 
 export interface Property {
@@ -44,5 +45,30 @@ export interface Report {
   details: string | null
   status: "open" | "reviewing" | "resolved" | "dismissed"
   created_at: string
-  properties?: Pick<Property, "title"> | null
+  properties?: Pick<Property, "id" | "title" | "status" | "images" | "owner_id"> | null
+}
+
+export interface Conversation {
+  id: string
+  property_id: string
+  renter_id: string
+  owner_id: string
+  last_message_at: string
+  created_at: string
+  properties?: Pick<Property, "id" | "title" | "images"> | null
+}
+
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  body: string
+  read_at: string | null
+  created_at: string
+}
+
+export interface PlatformSettings {
+  allow_submissions: boolean
+  announcement: string
+  support_email: string
 }
