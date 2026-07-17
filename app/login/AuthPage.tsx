@@ -1,278 +1,53 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { FormEvent, useState } from "react"
+import { Loader2, ShieldCheck } from "lucide-react"
+import { isSupabaseConfigured } from "@/lib/supabase"
+import { useAuth } from "@/hooks/useAuth"
+import type { UserRole } from "@/lib/types"
 
 export default function AuthPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+  const pathname = usePathname()
+  const router = useRouter()
+  const signup = pathname === "/signup"
+  const { signIn, signUp } = useAuth()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [role, setRole] = useState<UserRole>("tenant")
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState("")
 
-  const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: "",
-  })
-
-  const [signupForm, setSignupForm] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
-    phone: "",
-    userType: "tenant",
-  })
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-
-    try {
-      // Simulate login
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setSuccess("Login successful! Redirecting...")
-      setTimeout(() => {
-        window.location.href = "/dashboard"
-      }, 1500)
-    } catch (err) {
-      setError("Invalid email or password")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-
-    if (signupForm.password !== signupForm.confirmPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      // Simulate signup
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setSuccess("Account created successfully! Please check your email to verify your account.")
-    } catch (err) {
-      setError("Failed to create account. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    if (!isSupabaseConfigured) { setMessage("Connect Supabase before using accounts."); return }
+    setBusy(true); setMessage("")
+    const result = signup ? await signUp(email, password, fullName, role) : await signIn(email, password)
+    setBusy(false)
+    if (result.error) { setMessage(result.error.message); return }
+    if (signup && !result.data.session) { setMessage("Check your email to confirm your account, then sign in."); return }
+    router.push(role === "admin" ? "/admin" : "/dashboard")
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-          <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xl">B</span>
-            </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              BulaRent
-            </span>
-          </Link>
+    <div className="mx-auto grid min-h-[70vh] max-w-6xl place-items-center px-4 py-12">
+      <div className="grid w-full overflow-hidden rounded-3xl border bg-white shadow-xl md:grid-cols-2">
+        <div className="hidden bg-slate-950 p-12 text-white md:block"><ShieldCheck className="h-10 w-10 text-cyan-300" /><h1 className="mt-8 text-4xl font-black">A safer rental community starts with accountable listings.</h1><p className="mt-5 leading-7 text-slate-300">Owners control their listings. BulaRent reviews every property before renters can see it.</p></div>
+        <div className="p-7 sm:p-12">
+          <p className="font-semibold text-[#0d7c79]">{signup ? "Create your account" : "Welcome back"}</p>
+          <h2 className="mt-1 text-3xl font-black">{signup ? "Join BulaRent" : "Sign in to BulaRent"}</h2>
+          <form onSubmit={submit} className="mt-8 grid gap-5">
+            {signup && <label className="grid gap-2 text-sm font-semibold">Full name<input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="h-11 rounded-lg border px-3 font-normal" /></label>}
+            <label className="grid gap-2 text-sm font-semibold">Email<input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 rounded-lg border px-3 font-normal" /></label>
+            <label className="grid gap-2 text-sm font-semibold">Password<input required minLength={8} type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 rounded-lg border px-3 font-normal" /></label>
+            {signup && <label className="grid gap-2 text-sm font-semibold">I am joining as<select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="h-11 rounded-lg border px-3 font-normal"><option value="tenant">Renter</option><option value="landlord">Landlord</option><option value="agent">Property agent</option></select></label>}
+            {message && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{message}</p>}
+            <button disabled={busy} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#f15a24] font-bold text-white hover:bg-[#d94713] disabled:opacity-60">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{signup ? "Create account" : "Sign in"}</button>
+          </form>
+          <p className="mt-6 text-sm text-slate-600">{signup ? "Already registered?" : "New to BulaRent?"} <Link href={signup ? "/login" : "/signup"} className="font-semibold text-[#0d6f6b]">{signup ? "Sign in" : "Create an account"}</Link></p>
         </div>
-
-        <Card className="bg-white/80 backdrop-blur-sm border-blue-100">
-          <CardHeader>
-            <CardTitle className="text-center text-2xl font-bold text-gray-800">Welcome to BulaRent</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login" className="space-y-4">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={loginForm.email}
-                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="login-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={loginForm.password}
-                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup" className="space-y-4">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        placeholder="First name"
-                        value={signupForm.firstName}
-                        onChange={(e) => setSignupForm({ ...signupForm, firstName: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Last name"
-                        value={signupForm.lastName}
-                        onChange={(e) => setSignupForm({ ...signupForm, lastName: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signupForm.email}
-                      onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="Enter your phone number"
-                      value={signupForm.phone}
-                      onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="signup-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a password"
-                        value={signupForm.password}
-                        onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={signupForm.confirmPassword}
-                      onChange={(e) => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="userType">I am a</Label>
-                    <select
-                      id="userType"
-                      value={signupForm.userType}
-                      onChange={(e) => setSignupForm({ ...signupForm, userType: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="tenant">Tenant (Looking for property)</option>
-                      <option value="landlord">Landlord (Have property to rent)</option>
-                    </select>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Creating account..." : "Create Account"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            {error && (
-              <Alert className="mt-4 border-red-200 bg-red-50">
-                <AlertDescription className="text-red-700">{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {success && (
-              <Alert className="mt-4 border-green-200 bg-green-50">
-                <AlertDescription className="text-green-700">{success}</AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

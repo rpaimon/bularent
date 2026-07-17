@@ -1,433 +1,58 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Search, MapPin, Users, Shield, Star, TrendingUp, Home, Heart, Eye } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { FormEvent, useState } from "react"
+import { ArrowRight, BadgeCheck, Search, ShieldCheck } from "lucide-react"
+import { ListingCard } from "@/components/ListingCard"
+import { demoProperties } from "@/lib/demo-data"
 
 export default function Homepage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [featuredProperties] = useState([
-    {
-      id: "1",
-      title: "Modern 2BR Apartment in Suva CBD",
-      description: "Beautiful modern apartment in the heart of Suva with stunning harbor views.",
-      location: "Suva CBD",
-      price: 1200,
-      bedrooms: 2,
-      bathrooms: 2,
-      property_type: "Apartment",
-      images: ["/modern-apartment-suva.png"],
-      featured: true,
-      landlord: { name: "Mere Ratunabuabua", verified: true },
-      ratings: { average: 4.8, count: 12 },
-    },
-    {
-      id: "2",
-      title: "Beachfront Villa in Nadi",
-      description: "Stunning 3-bedroom villa just steps from the beach.",
-      location: "Nadi",
-      price: 2500,
-      bedrooms: 3,
-      bathrooms: 3,
-      property_type: "Villa",
-      images: ["/beachfront-villa-nadi.png"],
-      featured: true,
-      landlord: { name: "Jone Vuki", verified: true },
-      ratings: { average: 4.9, count: 8 },
-    },
-    {
-      id: "3",
-      title: "Cozy Studio in Tamavua",
-      description: "Perfect starter home for young professionals.",
-      location: "Tamavua",
-      price: 650,
-      bedrooms: 1,
-      bathrooms: 1,
-      property_type: "Studio",
-      images: ["/studio-apartment-tamavua.png"],
-      featured: true,
-      landlord: { name: "Sarah Johnson", verified: false },
-      ratings: { average: 4.2, count: 5 },
-    },
-  ])
+  const router = useRouter()
+  const [location, setLocation] = useState("")
 
-  const [stats] = useState({
-    totalProperties: 150,
-    totalUsers: 500,
-    averageRating: 4.6,
-  })
-
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      window.location.href = `/properties?search=${encodeURIComponent(searchQuery)}`
-    } else {
-      window.location.href = "/properties"
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch()
-    }
+  function search(event: FormEvent) {
+    event.preventDefault()
+    router.push(location.trim() ? `/properties?search=${encodeURIComponent(location.trim())}` : "/properties")
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-blue-100 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                BulaRent
-              </span>
-            </Link>
+    <>
+      <section className="relative isolate min-h-[680px] overflow-hidden bg-[#0a6567]">
+        <div className="absolute inset-0 bg-[url('/fiji-beach-palms.png')] bg-cover bg-center" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#075d62]/60 via-[#0b7772]/25 to-[#07384d]/45" />
+        <div className="relative mx-auto flex min-h-[680px] max-w-7xl flex-col items-center justify-center px-4 py-16 text-center">
+          <p className="text-xl font-semibold tracking-wide text-white/95 md:text-2xl">Find homes, the Bula way.</p>
+          <h1 className="mt-3 max-w-4xl text-5xl font-black tracking-tight text-white drop-shadow-sm md:text-7xl">A better way to rent in Fiji.</h1>
 
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/properties" className="text-gray-700 hover:text-blue-600 transition-colors">
-                Browse Properties
-              </Link>
-              <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">
-                Contact
-              </Link>
-            </nav>
-
-            <div className="flex items-center space-x-3">
-              <Link href="/login">
-                <Button variant="ghost">Sign In</Button>
-              </Link>
-              <Link href="/signup">
-                <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section
-        className="relative h-[70vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/fiji-beach-sunset.png')`,
-        }}
-      >
-        <div className="container mx-auto px-4 text-center text-white">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Find Your Perfect Home in
-            <span className="block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Paradise
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200">
-            Discover amazing properties across Fiji's beautiful islands
-          </p>
-
-          <div className="max-w-2xl mx-auto bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  placeholder="Enter location (e.g., Suva, Nadi, Lautoka)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="pl-10 h-12 border-0 bg-transparent text-gray-800 placeholder:text-gray-500"
-                />
-              </div>
-              <Button
-                onClick={handleSearch}
-                className="h-12 px-8 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold"
-              >
-                <Search className="w-5 h-5 mr-2" />
-                Search Properties
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold">{stats.totalProperties}+</div>
-              <div className="text-gray-200">Properties Available</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold">{stats.totalUsers}+</div>
-              <div className="text-gray-200">Happy Users</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold">{stats.averageRating}</div>
-              <div className="text-gray-200">Average Rating</div>
-            </div>
+          <div className="mt-10 w-full max-w-4xl rounded-[2rem] bg-[#fffaf2] p-6 shadow-[0_24px_80px_rgba(4,44,58,0.28)] sm:p-10 md:p-14">
+            <h2 className="text-3xl font-black leading-tight text-[#07384d] sm:text-4xl md:text-5xl">Bula! Find your perfect home</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600 sm:text-lg">Search genuine long-term rentals across Fiji’s towns and communities.</p>
+            <form onSubmit={search} className="mt-8 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:flex-row">
+              <label className="relative flex-1"><span className="sr-only">Where do you want to live?</span><Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Where do you want to live?" className="h-14 w-full rounded-xl border-0 bg-transparent pl-12 pr-4 text-base text-[#07384d] outline-none sm:text-lg" /></label>
+              <button className="h-14 rounded-xl bg-[#f15a24] px-9 text-lg font-black text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#d94713]">Search</button>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* Featured Properties */}
-      <section className="py-16 bg-white/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Featured Properties</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Handpicked premium properties from verified landlords across Fiji
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredProperties.map((property) => (
-              <Card
-                key={property.id}
-                className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-blue-100"
-              >
-                <div className="relative">
-                  <div className="relative h-48 overflow-hidden">
-                    <Image
-                      src={property.images[0] || "/placeholder.svg"}
-                      alt={property.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-
-                    <div className="absolute top-3 left-3 flex flex-col space-y-2">
-                      <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-1 rounded text-xs font-semibold">
-                        Featured
-                      </span>
-                      <span className="bg-white/90 text-gray-800 px-2 py-1 rounded text-xs font-medium capitalize">
-                        {property.property_type}
-                      </span>
-                    </div>
-
-                    <button className="absolute top-3 right-3 bg-white/90 rounded-full w-10 h-10 flex items-center justify-center hover:bg-white transition-colors">
-                      <Heart className="w-5 h-5 text-gray-600" />
-                    </button>
-                  </div>
-
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-2xl font-bold text-blue-600">
-                        ${property.price.toLocaleString()}
-                        <span className="text-sm text-gray-500 font-normal">/month</span>
-                      </div>
-                      {property.ratings && (
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{property.ratings.average}</span>
-                          <span className="text-sm text-gray-500">({property.ratings.count})</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {property.title}
-                    </h3>
-
-                    <div className="flex items-center text-gray-600 mb-3">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      <span className="text-sm">{property.location}</span>
-                    </div>
-
-                    <div className="flex items-center space-x-4 mb-4 text-gray-600">
-                      <div className="flex items-center space-x-1">
-                        <Home className="w-4 h-4" />
-                        <span className="text-sm">{property.bedrooms} bed</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Home className="w-4 h-4" />
-                        <span className="text-sm">{property.bathrooms} bath</span>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <Link href={`/properties/${property.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full bg-transparent">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Details
-                        </Button>
-                      </Link>
-                      <Button className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
-                        Inquire
-                      </Button>
-                    </div>
-                  </CardContent>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link href="/properties">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-              >
-                View All Properties
-              </Button>
-            </Link>
-          </div>
+      <section className="tropical-pattern bg-[#fffaf2]">
+        <div className="mx-auto max-w-7xl px-4 py-20">
+          <div className="text-center"><p className="font-bold uppercase tracking-[0.22em] text-[#0d7c79]">Homes ready to explore</p><h2 className="mt-3 text-4xl font-black text-[#07384d] md:text-5xl">Featured listings</h2><p className="mx-auto mt-4 max-w-2xl text-slate-600">Clear prices, useful details and Fiji locations—all in one friendly place.</p></div>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{demoProperties.slice(0, 4).map((property) => <ListingCard key={property.id} property={property} />)}</div>
+          <div className="mt-10 text-center"><Link href="/properties" className="inline-flex items-center gap-2 rounded-xl border-2 border-[#07384d] bg-white px-6 py-3 font-black text-[#07384d] transition hover:bg-[#07384d] hover:text-white">Browse all rentals <ArrowRight className="h-4 w-4" /></Link></div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gradient-to-br from-blue-50 to-cyan-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Why Choose BulaRent?</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              We make finding and renting properties in Fiji simple, safe, and transparent
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="text-center p-6 bg-white/80 backdrop-blur-sm border-blue-100 hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Verified Properties</h3>
-                <p className="text-gray-600">All properties are verified by our team for authenticity and quality</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center p-6 bg-white/80 backdrop-blur-sm border-blue-100 hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Trusted Community</h3>
-                <p className="text-gray-600">Connect with verified landlords and tenants in Fiji's rental community</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center p-6 bg-white/80 backdrop-blur-sm border-blue-100 hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Star className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Rating System</h3>
-                <p className="text-gray-600">Transparent ratings and reviews help you make informed decisions</p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center p-6 bg-white/80 backdrop-blur-sm border-blue-100 hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Market Insights</h3>
-                <p className="text-gray-600">Get real-time market data and pricing insights for better decisions</p>
-              </CardContent>
-            </Card>
-          </div>
+      <section className="bg-[#0d7c79] text-white">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 md:grid-cols-3">
+          <div className="rounded-2xl bg-white/10 p-6"><ShieldCheck className="h-8 w-8 text-[#ffd1b8]" /><h3 className="mt-4 text-xl font-black">Reviewed before publishing</h3><p className="mt-2 leading-7 text-white/80">Listings enter a moderation queue before renters can discover them.</p></div>
+          <div className="rounded-2xl bg-white/10 p-6"><BadgeCheck className="h-8 w-8 text-[#ffd1b8]" /><h3 className="mt-4 text-xl font-black">Clear trust signals</h3><p className="mt-2 leading-7 text-white/80">Verification is controlled by BulaRent—not self-declared by an advertiser.</p></div>
+          <div className="rounded-2xl bg-white/10 p-6"><Search className="h-8 w-8 text-[#ffd1b8]" /><h3 className="mt-4 text-xl font-black">Built around Fiji</h3><p className="mt-2 leading-7 text-white/80">Search familiar towns, compare monthly rent and contact owners directly.</p></div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Find Your Dream Home?</h2>
-          <p className="text-xl mb-8 text-blue-100">
-            Join thousands of satisfied users who found their perfect rental through BulaRent
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/properties">
-              <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-                Browse Properties
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
-              >
-                Sign Up Today
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gradient-to-r from-blue-900 to-cyan-900 text-white">
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">B</span>
-                </div>
-                <span className="text-2xl font-bold">BulaRent</span>
-              </div>
-              <p className="text-blue-100 mb-4">
-                Fiji's premier property rental platform. Find your perfect home in paradise.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-blue-100">
-                <li>
-                  <Link href="/properties" className="hover:text-white transition-colors">
-                    Browse Properties
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/about" className="hover:text-white transition-colors">
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="hover:text-white transition-colors">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/help" className="hover:text-white transition-colors">
-                    Help Center
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-blue-100">
-                <li>
-                  <Link href="/terms" className="hover:text-white transition-colors">
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/privacy" className="hover:text-white transition-colors">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cookies" className="hover:text-white transition-colors">
-                    Cookie Policy
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-blue-800 mt-8 pt-8 text-center text-blue-100">
-            <p>&copy; 2024 BulaRent. All rights reserved. Made with 💙 in Fiji.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <section className="bg-[#fffaf2] px-4 py-20 text-center"><div className="mx-auto max-w-3xl"><p className="font-bold uppercase tracking-[0.22em] text-[#0d7c79]">Have a place to rent?</p><h2 className="mt-3 text-4xl font-black text-[#07384d]">Help someone find their next home.</h2><p className="mt-4 text-lg text-slate-600">Create a clear listing, upload real photos and follow its review from your dashboard.</p><Link href="/submit" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#f15a24] px-9 py-4 text-lg font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#d94713]">List your property <ArrowRight className="h-5 w-5" /></Link></div></section>
+    </>
   )
 }
